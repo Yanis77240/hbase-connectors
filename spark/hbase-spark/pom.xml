@@ -27,7 +27,7 @@
     <relativePath>../</relativePath>
   </parent>
   <groupId>org.apache.hbase.connectors.spark</groupId>
-  <artifactId>hbase-spark</artifactId>
+  <artifactId>hbase-spark-2.3.5</artifactId>
   <name>Apache HBase - Spark Connector</name>
   <properties />
   <dependencies>

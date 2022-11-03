@@ -200,7 +200,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hbase.connectors.spark</groupId>
-      <artifactId>hbase-spark</artifactId>
+      <artifactId>hbase-spark-2.3.5</artifactId>
       <version>${revision}</version>
     </dependency>
     <dependency>

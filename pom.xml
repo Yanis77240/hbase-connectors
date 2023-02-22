@@ -55,6 +55,23 @@
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/hbase-connectors.git</developerConnection>
     <url>https://gitbox.apache.org/repos/asf?p=hbase-connectors.git;a=summary</url>
   </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>nexus</id>
+      <name>my nexus</name>
+      <url>http://172.19.0.2:8081/repository/my-maven-test/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>nexus</id>
+      <name>my nexus</name>
+      <url>http://172.19.0.2:8081/repository/my-maven-test/</url>
+    </repository>
+  </repositories>
+
   <issueManagement>
     <!--File issues for this project against Apache HBase JIRA-->
     <system>JIRA</system>

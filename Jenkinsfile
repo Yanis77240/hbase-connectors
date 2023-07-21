@@ -1,7 +1,7 @@
 podTemplate(containers: [
     containerTemplate(
         name: 'tdp-builder', 
-        image: 'yanisbariteau/tdp-builder:jenkins', 
+        image: 'stbaum/jenkins-mysql:latest', 
         command: 'sleep', 
         args: '30d'
         )
@@ -25,8 +25,17 @@ podTemplate(containers: [
             stage('Test') {
                 echo "Testing.."
                 sh '''
-                mvn clean test --batch-mode -Dsurefire.rerunFailingTestsCount=3
+                mvn clean test --batch-mode -Dsurefire.rerunFailingTestsCount=3 | grep -E '(Errors:|Failures:|Skipped:)' | tee output-tests.csv
                 '''
+            }
+            stage('Send CSV to Database') {
+                echo "send tests to database"
+                withEnv(["number=${currentBuild.number}"]) {
+                    sh'''
+                    mysql -h 10.100.99.143 -u root -padmin tests -e "CREATE TABLE hbase_connectors_${number} (Runs VARCHAR(255), Failures VARCHAR(255), Errors VARCHAR(255), Skipped VARCHAR(255), Test_Name VARCHAR(255));"
+                    mysql -h 10.100.99.143 -u root -padmin tests -e "LOAD DATA LOCAL INFILE 'output-tests.csv' INTO TABLE hbase_connectors_${number} FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' (Runs, Failures, Errors, Skipped, @var_Test_name) SET Test_name = IFNULL(NULLIF(@var_Test_name, ''), 'not_precised');"
+                    '''
+                }
             }
             stage('Deliver') {
                 echo "Deploy..."

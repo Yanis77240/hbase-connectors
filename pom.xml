@@ -530,11 +530,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
         <version>3.1.2</version>
-        <!--<configuration>
-          <showSuccess>false</showSuccess>
+        <configuration>
           <aggregate>true</aggregate>
           <linkXRef>true</linkXRef>
-        </configuration>-->
+        </configuration>
       </plugin>
     </plugins>
   </reporting>

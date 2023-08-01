@@ -28,25 +28,25 @@ podTemplate(containers: [
                     withCredentials([usernamePassword(credentialsId: '4b87bd68-ad4c-11ed-afa1-0242ac120002', passwordVariable: 'pass', usernameVariable: 'user')]) {
                         sh 'mvn clean test -Phive -Phive-thriftserver -Pyarn -Phadoop-3.1 -Pflume --batch-mode -Dsurefire.rerunFailingTestsCount=3 --fail-never -Dstyle.color=never'
                         sh 'mvn surefire-report:report-only  -Daggregate=true'
-                        sh 'curl -v -u $user:$pass --upload-file target/site/surefire-report.html http://10.110.4.212:8081/repository/test-reports/spark-2.3/surefire-report-${number}.html'
+                        sh 'curl -v -u $user:$pass --upload-file target/site/surefire-report.html http://10.110.4.212:8081/repository/test-reports/hbase-connectors/surefire-report-${number}.html'
                     }
                     withCredentials([usernamePassword(credentialsId: '12b08ce0-3046-11ee-be56-0242ac120002', passwordVariable: 'pass', usernameVariable: 'user')]) {
+                        sh script: $/
+                        grep -F --color=never --no-group-separator "*** FAILED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > scala-tests.txt
+                        grep -E --color=never --no-group-separator "*** RUN ABORTED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > aborted-tests.txt
+                        grep -E --color=never --no-group-separator "succeeded.*canceled.*ignored" */**/target/surefire-reports/TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > scala-end-results.txt
+                        /$
                         sh '''
-                        grep -F --color=never --no-group-separator "*** FAILED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > scala-tests.txt
-                        grep -E --color=never --no-group-separator "*** RUN ABORTED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > aborted-tests.txt
-                        grep -E --color=never --no-group-separator "succeeded.*canceled.*ignored" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > scala-end-results.txt
-                        '''
-                        sh '''
-                        mysql -h 10.100.99.143 -u $user -p$pass -e "CREATE DATABASE IF NOT EXISTS HBASE_CONNECTORS;"
+                        mysql -h 10.100.99.143 -u $user -p$pass -e "CREATE DATABASE IF NOT EXISTS HBASE_CONNECTORS_${number};"
                         '''
                         sh'''
-                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS -e "CREATE TABLE test_list_${number} (Module VARCHAR(125), Test_name VARCHAR(255)); LOAD DATA LOCAL INFILE 'scala-tests.txt' INTO TABLE test_list_${number} FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n'; UPDATE test_list_${number} SET Module = REPLACE(Module, '/target/surefire-reports/TestSuite.', '');"
+                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS_${number} -e "CREATE TABLE test_list (Test_name VARCHAR(255)); LOAD DATA LOCAL INFILE 'scala-tests.txt' INTO TABLE test_list FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n';"
                         '''
                         sh '''
-                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS -e "CREATE TABLE aborted_tests (Module VARCHAR(125), Results VARCHAR(255)); LOAD DATA LOCAL INFILE 'aborted-tests.txt' INTO TABLE aborted_tests FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n'; UPDATE aborted_tests SET Module = REPLACE(Module, '/target/surefire-reports/TestSuite.', '');"
+                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS_${number} -e "CREATE TABLE aborted_tests (Results VARCHAR(255)); LOAD DATA LOCAL INFILE 'aborted-tests.txt' INTO TABLE aborted_tests FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n';"
                         '''
                         sh '''
-                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS -e "CREATE TABLE test_resume_${number} (Module VARCHAR(125), Results VARCHAR(255)); LOAD DATA LOCAL INFILE 'scala-end-results.txt' INTO TABLE test_resume_${number} FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n'; UPDATE test_resume_${number} SET Module = REPLACE(Module, '/target/surefire-reports/TestSuite.', ''); CREATE TABLE results_${number} (SELECT Module, SUBSTRING_INDEX(Results, ',', 1) AS Succeeded,     SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 2), ',', -1) AS Failed,     SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 3), ',', -1) AS Canceled, SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 4), ',', -1) AS Ignored, SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 5), ',', -1) AS Pending  FROM test_resume_${number}); drop table test_resume_${number}; UPDATE results_${number} SET Succeeded = SUBSTRING_INDEX(Succeeded, ' ', -1), Failed = SUBSTRING_INDEX(Failed, ' ', -1), Canceled = SUBSTRING_INDEX(Canceled, ' ', -1), Ignored = SUBSTRING_INDEX(Ignored, ' ', -1), Pending = SUBSTRING_INDEX(Pending, ' ', -1);"
+                        mysql -h 10.100.99.143 -u $user -p$pass HBASE_CONNECTORS_${number} -e "CREATE TABLE test_resume (Results VARCHAR(255)); LOAD DATA LOCAL INFILE 'scala-end-results.txt' INTO TABLE test_resume FIELDS TERMINATED BY 'txt:' LINES TERMINATED by '\n'; CREATE TABLE results (SELECT SUBSTRING_INDEX(Results, ',', 1) AS Succeeded,     SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 2), ',', -1) AS Failed,     SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 3), ',', -1) AS Canceled, SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 4), ',', -1) AS Ignored, SUBSTRING_INDEX(SUBSTRING_INDEX(Results, ',', 5), ',', -1) AS Pending  FROM test_resume); drop table test_resume; UPDATE results SET Succeeded = SUBSTRING_INDEX(Succeeded, ' ', -1), Failed = SUBSTRING_INDEX(Failed, ' ', -1), Canceled = SUBSTRING_INDEX(Canceled, ' ', -1), Ignored = SUBSTRING_INDEX(Ignored, ' ', -1), Pending = SUBSTRING_INDEX(Pending, ' ', -1);"
                         '''
                     }
                 }

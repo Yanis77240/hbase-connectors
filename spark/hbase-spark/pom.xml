@@ -750,7 +750,6 @@
               <junitxml>.</junitxml>
               <filereports>WDF TestSuite.txt</filereports>
               <parallel>false</parallel>
-              <skipTests>false</skipTests>
             </configuration>
             <executions>
               <execution>

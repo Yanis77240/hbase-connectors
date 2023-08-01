@@ -32,9 +32,9 @@ podTemplate(containers: [
                     }
                     withCredentials([usernamePassword(credentialsId: '12b08ce0-3046-11ee-be56-0242ac120002', passwordVariable: 'pass', usernameVariable: 'user')]) {
                         sh '''
-                        grep -F --color=never --no-group-separator "*** FAILED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/\x1B\[[0-9;]*[mK]//g" > scala-tests.txt
-                        grep -E --color=never --no-group-separator "*** RUN ABORTED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/\x1B\[[0-9;]*[mK]//g" > aborted-tests.txt
-                        grep -E --color=never --no-group-separator "succeeded.*canceled.*ignored" */**/target/surefire-reports/TestSuite.txt | sed -r "s/\x1B\[[0-9;]*[mK]//g" > scala-end-results.txt
+                        grep -F --color=never --no-group-separator "*** FAILED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > scala-tests.txt
+                        grep -E --color=never --no-group-separator "*** RUN ABORTED ***" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > aborted-tests.txt
+                        grep -E --color=never --no-group-separator "succeeded.*canceled.*ignored" */**/target/surefire-reports/TestSuite.txt | sed -r "s/x1B[[0-9;]*[mK]//g" > scala-end-results.txt
                         '''
                         sh '''
                         mysql -h 10.100.99.143 -u $user -p$pass -e "CREATE DATABASE IF NOT EXISTS HBASE_CONNECTORS;"

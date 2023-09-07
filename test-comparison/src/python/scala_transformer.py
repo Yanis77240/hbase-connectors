@@ -118,7 +118,8 @@ def scala_transfomer_fy(build_number):
             # Replace all NaN None in the dataframe
             df = df.where(pd.notna(df), None)
             # Make sure aborted column is of type boolean after the merge
-            df['aborted'] = df['aborted'].apply(lambda x: True if x=="*** RUN ABORTED ***" else False)
+            df['aborted'] = df['aborted'].apply(lambda x: True if '*** RUN ABORTED ***' in x else False)
+
             
             # Create a dictionnary
             nested_dict = {}

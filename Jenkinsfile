@@ -44,7 +44,7 @@ podTemplate(containers: [
                         sh 'curl -v -u $user:$pass --upload-file target/site/surefire-report.html http://10.110.4.212:8081/repository/test-reports/hbase-connectors/surefire-report-${number}.html'
                         /* extract the java-test and scalatest-plugin data output and remove all color signs */
                         sh'./test-comparison/src/grep-commands/grep-surefire-3.0.0.sh'
-                        /*sh'./test-comparison/src/grep-commands/grep-scalatest.sh'*/
+                        sh'./test-comparison/src/grep-commands/grep-scalatest.sh'
                         /* Perform the data transformation and the comparison*/
                         sh '''
                         cd test-comparison

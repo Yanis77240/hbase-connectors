@@ -4,7 +4,7 @@
 grep -F --color=never --no-group-separator "*** FAILED ***" */target/surefire-reports/*TestSuite.txt */**/target/surefire-reports/*TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > test-comparison/scala-tests.txt
 
 # Generate text file with all Aborted modules without any colors
-grep -E --color=never --no-group-separator "*** RUN ABORTED ***" */target/surefire-reports/*TestSuite.txt */**/target/surefire-reports/*TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > test-comparison/aborted-tests.txt
+grep -x --color=never --no-group-separator "*** RUN ABORTED ***" */target/surefire-reports/*TestSuite.txt */**/target/surefire-reports/*TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > test-comparison/aborted-tests.txt
 
 # Generate text file with all scala test statistics without any colors
 grep -E --color=never --no-group-separator "succeeded.*canceled.*ignored" */target/surefire-reports/*TestSuite.txt */**/target/surefire-reports/*TestSuite.txt | sed -r "s|\x1B\[[0-9;]*[mK]||g" > test-comparison/scala-end-results.txt
